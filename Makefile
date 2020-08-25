@@ -8,7 +8,7 @@ FUGUE_ACCOUNT_ID ?= 370134896156
 STACKSET_NAME ?= Fugue
 ROLE_NAME ?= $(shell cat role_name)
 OU ?= "*"
-COMPLIANCE_FAMILIES ?= "CIS FBP"
+COMPLIANCE_FAMILIES ?= CIS FBP
 
 # Create a Python virtual environment to use for scripting in this Makefile
 $(VENV_NAME):
