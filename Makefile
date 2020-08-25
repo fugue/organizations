@@ -36,7 +36,7 @@ stackset: role_name
 ifeq ($(EXTERNAL_ID),)
 	$(error EXTERNAL_ID not set)
 endif
-	python create_stackset.py \
+	$(VENV) && python create_stackset.py \
 		--name $(STACKSET_NAME) \
 		--template cloudformation/account.yaml \
 		--description "Provides read-only scan access to Fugue" \
