@@ -69,7 +69,7 @@ make stackset EXTERNAL_ID=<extid>
 You may also *optionally* override the following variables:
  
  * `ROLE_NAME=<name>` to customize the role name in each account (default: `Fugue-[timestamp]`)
- * `OU=<ou_id>` to deploy the roles to accounts in one OU only (default: all accounts)
+ * `OU=<ou_id>` to deploy the roles to accounts in one OU only (default: all OUs)
  * `STACKSET_NAME=<name>` to customize the Stackset name (default: `Fugue`)
  * `TRUSTED_ACCOUNT_ID=<aws_account_id>` to override the account to grant access to (default: Fugue's AWS account)
  * `TRUSTED_PRINCIPAL=<principal>` to grant access to a specific role
