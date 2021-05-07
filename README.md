@@ -24,9 +24,7 @@ will automatically be installed for you.
 
 Your Fugue account will have an associated [External ID](https://aws.amazon.com/blogs/security/how-to-use-external-id-when-granting-access-to-your-aws-resources/)
 associated with it. You should [sign up](https://riskmanager.fugue.co/register)
-for Fugue now if you haven't yet.
-
-Once you have a Fugue account, you can retreive your external ID as follows:
+for Fugue now if you haven't yet. Once you have a Fugue account, you can retreive your external ID as follows:
 
  * Sign into the AWS console of one of your accounts
  * In another tab, sign into the Fugue console
@@ -43,8 +41,7 @@ value.
 ## Step 2: Gather information about your AWS organization
 
 **Prerequisite**: You must have AWS credentials **for your organization root account** active, with
-the `AWSOrganizationsReadOnlyAccess` policy attached to your user or role, or
-equivalent permissions via another policy.
+the `AWSOrganizationsReadOnlyAccess` policy or equivalent permissions attached to your user or role.
 
 Run the following to gather account and organizational unit (OU) information
 from your AWS organization and write it to a JSON-formatted output file:
@@ -57,11 +54,11 @@ This creates `organization.json` in the current directory.
 
 ## Step 3: Create a Cloudformation Stackset to provision IAM roles
 
-With the External ID from Step 1 in hand, we can now create the Stackset.
-
-You will still need AWS credentials for your root account active, with the
+With the External ID from Step 1 in hand, we can now create the Stackset. You
+will still need AWS credentials for your root account active, with the
 `AWSCloudFormationFullAccess` and `AWSOrganizationsReadOnlyAccess` or equivalent
-policies attached.
+policies attached. See [template.yaml](template.yaml) for the CloudFormation template
+used to create the role in each AWS account.
 
 Run the following command, replacing `<extid>` with your value:
 
@@ -69,16 +66,13 @@ Run the following command, replacing `<extid>` with your value:
 make stackset EXTERNAL_ID=<extid>
 ```
 
-You may also *optionally* specify the following variables:
+You may also *optionally* override the following variables:
  
  * `ROLE_NAME=<name>` to customize the role name in each account (default: `Fugue-[timestamp]`)
  * `OU=<ou_id>` to deploy the roles to accounts in one OU only (default: all accounts)
  * `STACKSET_NAME=<name>` to customize the Stackset name (default: `Fugue`)
  * `TRUSTED_ACCOUNT_ID=<aws_account_id>` to override the account to grant access to (default: Fugue's AWS account)
  * `TRUSTED_PRINCIPAL=<principal>` to grant access to a specific role
-
-See [template.yaml](template.yaml) for the CloudFormation template
-used to create the role in each AWS account.
 
 It may take about 15 minutes for the Stackset to create the corresponding
 Stacks and Roles in each AWS account. Monitor this progress via the
