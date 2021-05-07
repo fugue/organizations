@@ -1,0 +1,97 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Allows Fugue to check this account for security and compliance
+Parameters:
+  RoleName:
+    Type: String
+    Description: Name of the IAM role to create
+  TrustedPrincipal:
+    Type: String
+    Description: Principal that will be allowed cross-account access
+    Default: "role/generate-credentials"
+  TrustedAccountID:
+    Type: String
+    Description: AWS account ID that will be granted cross-account access
+  ExternalID:
+    Type: String
+    Description: External ID for the IAM role
+Resources:
+  FugueRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Ref RoleName
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              AWS: !Join [ ":", [ "arn:aws:iam:", !Ref TrustedAccountID, !Ref TrustedPrincipal ] ]
+            Action: "sts:AssumeRole"
+            Condition:
+              StringEquals:
+                "sts:ExternalId": !Ref ExternalID
+      Policies:
+        - PolicyName: Fugue
+          PolicyDocument: {
+            "Version": "2012-10-17",
+            "Statement": [
+              {
+                "Sid": "0",
+                "Effect": "Allow",
+                "Resource": "*",
+                "Action": [
+                  "acm-pca:DescribeCertificateAuthority",
+                  "acm-pca:GetCertificateAuthorityCertificate",
+                  "acm-pca:GetCertificateAuthorityCsr",
+                  "acm-pca:ListCertificateAuthorities",
+                  "acm-pca:ListTags",
+                  "apigateway:GET",
+                  "cloudwatch:GetDashboard",
+                  "cloudwatch:ListDashboards",
+                  "cloudwatch:ListTagsForResource",
+                  "cognito-idp:Describe*",
+                  "cognito-idp:List*",
+                  "cognito-idp:GetGroup",
+                  "cognito-idp:GetUserPoolMfaConfig",
+                  "ds:DescribeConditionalForwarders",
+                  "ds:ListTagsForResource",
+                  "dynamodb:ListTagsOfResource",
+                  "ecr:ListTagsForResource",
+                  "elasticache:ListTagsForResource",
+                  "elasticfilesystem:DescribeLifecycleConfiguration",
+                  "elasticfilesystem:DescribeTags",
+                  "glacier:GetVaultNotifications",
+                  "glacier:ListTagsForVault",
+                  "kinesis:DescribeStreamSummary",
+                  "lambda:GetAlias",
+                  "lambda:GetEventSourceMapping",
+                  "lambda:GetFunction",
+                  "macie:ListMemberAccounts",
+                  "macie:ListS3Resources",
+                  "mediastore:DescribeContainer",
+                  "mediastore:ListTagsForResource",
+                  "secretsmanager:DescribeSecret",
+                  "sns:GetSubscriptionAttributes",
+                  "sns:ListSubscriptions",
+                  "sns:ListTagsForResource",
+                  "ssm:Get*",
+                  "ssm:List*",
+                  "states:DescribeStateMachine",
+                  "states:ListTagsForResource",
+                  "waf-regional:Get*",
+                  "waf-regional:List*",
+                  "waf:Get*",
+                  "waf:List*",
+                  "wafv2:Get*",
+                  "wafv2:List*"
+                ]
+              }
+            ]
+          }
+      ManagedPolicyArns: ["arn:aws:iam::aws:policy/SecurityAudit"]
+
+Outputs:
+  FugueRoleArn:
+    Description: IAM Role for Fugue
+    Value: !GetAtt FugueRole.Arn
+    Export:
+      Name: !Join [ ":", [ !Ref "AWS::StackName", FugueRoleArn ] ]
