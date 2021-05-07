@@ -46,7 +46,7 @@ $(VENV_NAME):
 # Create a "random" role name to make the role name less guessable. The role
 # access would already be secured via the role trust policy, but this is just
 # added for good measure.
-role_name.txt:
+role_name.txt: $(VENV_NAME)
 	@$(VENV) && python -c "import time; print('Fugue-%d' % int(time.time()))" > $@
 
 .PHONY: print_role_name

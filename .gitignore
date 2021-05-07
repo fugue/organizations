@@ -5,6 +5,7 @@ organization.json
 .orgvenv
 .stackset
 role_name
+role_name.txt
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
