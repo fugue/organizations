@@ -11,10 +11,10 @@ to provision an IAM role in multiple accounts in one operation.
 
 Using these scripts requires the following:
 
- * Python 3.6+
- * AWS credentials for your **AWS organization root account**
- * GNU Make
- * AWS CLI and Botocore (these are automatically installed in a virtualenv)
+- Python 3.6+
+- AWS credentials for your **AWS organization root account**
+- GNU Make
+- AWS CLI and Botocore (these are automatically installed in a virtualenv)
 
 This was tested on MacOS, but should also work on Linux and WSL on Windows.
 By running Make commands as described below, the required Python dependencies
@@ -26,14 +26,14 @@ Your Fugue account will have an associated [External ID](https://aws.amazon.com/
 associated with it. You should [sign up](https://riskmanager.fugue.co/register)
 for Fugue now if you haven't yet. Once you have a Fugue account, you can retreive your external ID as follows:
 
- * Sign into the AWS console of one of your accounts
- * In another tab, sign into the Fugue console
- * Click *Create New Environment*
- * Choose the AWS cloud provider and provide a name
- * Use defaults for regions and resource types
- * Click *Review Stack in AWS Console*
- * Click *View in Designer* in the AWS console webpage
- * Copy the external ID from the YAML file. The line starts with `"sts:ExternalId"`.
+- Sign into the AWS console of one of your accounts
+- In another tab, sign into the Fugue console
+- Click _Create New Environment_
+- Choose the AWS cloud provider and provide a name
+- Use defaults for regions and resource types
+- Click _Review Stack in AWS Console_
+- Click _View in Designer_ in the AWS console webpage
+- Copy the external ID from the YAML file. The line starts with `"sts:ExternalId"`.
 
 Alternatively, you can reach out to `support@fugue.co` for help retrieving this
 value.
@@ -66,13 +66,14 @@ Run the following command, replacing `<extid>` with your value:
 make stackset EXTERNAL_ID=<extid>
 ```
 
-You may also *optionally* override the following variables:
- 
- * `ROLE_NAME=<name>` to customize the role name in each account (default: `Fugue-[timestamp]`)
- * `OU=<ou_id>` to deploy the roles to accounts in one OU only (default: all OUs)
- * `STACKSET_NAME=<name>` to customize the Stackset name (default: `Fugue`)
- * `TRUSTED_ACCOUNT_ID=<aws_account_id>` to override the account to grant access to (default: Fugue's AWS account)
- * `TRUSTED_PRINCIPAL=<principal>` to grant access to a specific role
+You may also _optionally_ override the following variables:
+
+- `ROLE_NAME=<name>` to customize the role name in each account (default: `Fugue-[timestamp]`)
+- `OU=<ou_id>` to deploy the roles to accounts in one OU only (default: all OUs)
+- `STACKSET_NAME=<name>` to customize the Stackset name (default: `Fugue`)
+- `TRUSTED_ACCOUNT_ID=<aws_account_id>` to override the account to grant access to (default: Fugue's AWS account)
+- `TRUSTED_PRINCIPAL=<principal>` to grant access to a specific role
+- `EVENT_BUS_ARN=<arn>` destination for CloudTrail events
 
 It may take about 15 minutes for the Stackset to create the corresponding
 Stacks and Roles in each AWS account. Monitor this progress via the

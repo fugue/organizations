@@ -14,6 +14,9 @@ Parameters:
   ExternalID:
     Type: String
     Description: External ID for the IAM role
+  EventBusArn:
+    Type: String
+    Description: Fugue event bus ARN
 Resources:
   FugueRole:
     Type: AWS::IAM::Role
@@ -24,74 +27,166 @@ Resources:
         Statement:
           - Effect: "Allow"
             Principal:
-              AWS: !Join [ ":", [ "arn:aws:iam:", !Ref TrustedAccountID, !Ref TrustedPrincipal ] ]
+              AWS:
+                !Join [
+                  ":",
+                  [
+                    "arn:aws:iam:",
+                    !Ref TrustedAccountID,
+                    !Ref TrustedPrincipal,
+                  ],
+                ]
             Action: "sts:AssumeRole"
             Condition:
               StringEquals:
                 "sts:ExternalId": !Ref ExternalID
       Policies:
         - PolicyName: Fugue
-          PolicyDocument: {
-            "Version": "2012-10-17",
-            "Statement": [
-              {
-                "Sid": "0",
-                "Effect": "Allow",
-                "Resource": "*",
-                "Action": [
-                  "acm-pca:DescribeCertificateAuthority",
-                  "acm-pca:GetCertificateAuthorityCertificate",
-                  "acm-pca:GetCertificateAuthorityCsr",
-                  "acm-pca:ListCertificateAuthorities",
-                  "acm-pca:ListTags",
-                  "apigateway:GET",
-                  "cloudwatch:GetDashboard",
-                  "cloudwatch:ListDashboards",
-                  "cloudwatch:ListTagsForResource",
-                  "cognito-idp:Describe*",
-                  "cognito-idp:List*",
-                  "cognito-idp:GetGroup",
-                  "cognito-idp:GetUserPoolMfaConfig",
-                  "ds:DescribeConditionalForwarders",
-                  "ds:ListTagsForResource",
-                  "dynamodb:ListTagsOfResource",
-                  "ecr:ListTagsForResource",
-                  "elasticache:ListTagsForResource",
-                  "elasticfilesystem:DescribeLifecycleConfiguration",
-                  "elasticfilesystem:DescribeTags",
-                  "glacier:GetVaultNotifications",
-                  "glacier:ListTagsForVault",
-                  "kinesis:DescribeStreamSummary",
-                  "lambda:GetAlias",
-                  "lambda:GetEventSourceMapping",
-                  "lambda:GetFunction",
-                  "macie:ListMemberAccounts",
-                  "macie:ListS3Resources",
-                  "mediastore:DescribeContainer",
-                  "mediastore:ListTagsForResource",
-                  "secretsmanager:DescribeSecret",
-                  "sns:GetSubscriptionAttributes",
-                  "sns:ListSubscriptions",
-                  "sns:ListTagsForResource",
-                  "ssm:Get*",
-                  "ssm:List*",
-                  "states:DescribeStateMachine",
-                  "states:ListTagsForResource",
-                  "waf-regional:Get*",
-                  "waf-regional:List*",
-                  "waf:Get*",
-                  "waf:List*",
-                  "wafv2:Get*",
-                  "wafv2:List*"
-                ]
-              }
-            ]
-          }
+          PolicyDocument:
+            {
+              "Version": "2012-10-17",
+              "Statement":
+                [
+                  {
+                    "Sid": "0",
+                    "Effect": "Allow",
+                    "Resource": "*",
+                    "Action":
+                      [
+                        "acm-pca:DescribeCertificateAuthority",
+                        "acm-pca:GetCertificateAuthorityCertificate",
+                        "acm-pca:GetCertificateAuthorityCsr",
+                        "acm-pca:ListCertificateAuthorities",
+                        "acm-pca:ListTags",
+                        "apigateway:GET",
+                        "cloudwatch:GetDashboard",
+                        "cloudwatch:ListDashboards",
+                        "cloudwatch:ListTagsForResource",
+                        "cognito-idp:Describe*",
+                        "cognito-idp:List*",
+                        "cognito-idp:GetGroup",
+                        "cognito-idp:GetUserPoolMfaConfig",
+                        "ds:DescribeConditionalForwarders",
+                        "ds:ListTagsForResource",
+                        "dynamodb:ListTagsOfResource",
+                        "ecr:ListTagsForResource",
+                        "elasticache:ListTagsForResource",
+                        "elasticfilesystem:DescribeLifecycleConfiguration",
+                        "elasticfilesystem:DescribeTags",
+                        "glacier:GetVaultNotifications",
+                        "glacier:ListTagsForVault",
+                        "kinesis:DescribeStreamSummary",
+                        "lambda:GetAlias",
+                        "lambda:GetEventSourceMapping",
+                        "lambda:GetFunction",
+                        "macie:ListMemberAccounts",
+                        "macie:ListS3Resources",
+                        "mediastore:DescribeContainer",
+                        "mediastore:ListTagsForResource",
+                        "secretsmanager:DescribeSecret",
+                        "sns:GetSubscriptionAttributes",
+                        "sns:ListSubscriptions",
+                        "sns:ListTagsForResource",
+                        "ssm:Get*",
+                        "ssm:List*",
+                        "states:DescribeStateMachine",
+                        "states:ListTagsForResource",
+                        "waf-regional:Get*",
+                        "waf-regional:List*",
+                        "waf:Get*",
+                        "waf:List*",
+                        "wafv2:Get*",
+                        "wafv2:List*",
+                      ],
+                  },
+                ],
+            }
       ManagedPolicyArns: ["arn:aws:iam::aws:policy/SecurityAudit"]
-
+  FugueEventsRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: events.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: SendEvents
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: events:PutEvents
+                Resource: !Ref EventBusArn
+  FugueEventsRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Description: Fugue Events Rule
+      RoleArn: !GetAtt FugueEventsRole.Arn
+      EventPattern:
+        source:
+          - "aws.acm"
+          - "aws.apigateway"
+          - "aws.apigatewayv2"
+          - "aws.athena"
+          - "aws.autoscaling"
+          - "aws.cloudformation"
+          - "aws.cloudfront"
+          - "aws.cloudtrail"
+          - "aws.cloudwatch"
+          - "aws.codedeploy"
+          - "aws.cognito-identity"
+          - "aws.cognito-idp"
+          - "aws.cognito-sync"
+          - "aws.config"
+          - "aws.dynamodb"
+          - "aws.ec2"
+          - "aws.ecr"
+          - "aws.ecs"
+          - "aws.eks"
+          - "aws.elasticache"
+          - "aws.elasticloadbalancing"
+          - "aws.es"
+          - "aws.fargate"
+          - "aws.firehose"
+          - "aws.glacier"
+          - "aws.glue"
+          - "aws.guardduty"
+          - "aws.iam"
+          - "aws.kinesis"
+          - "aws.lambda"
+          - "aws.macie"
+          - "aws.organizations"
+          - "aws.rds"
+          - "aws.redshift"
+          - "aws.route53"
+          - "aws.s3"
+          - "aws.sagemaker"
+          - "aws.secretsmanager"
+          - "aws.securityhub"
+          - "aws.signin"
+          - "aws.sns"
+          - "aws.sqs"
+          - "aws.states"
+          - "aws.tag"
+          - "aws.trustedadvisor"
+          - "aws.waf"
+          # - "aws.kms"
+          # - "aws.logs"
+          # - "aws.ssm"
+        detail-type:
+          - "AWS API Call via CloudTrail"
+          - "AWS Console Sign In via CloudTrail"
+          - "AWS Service Event via CloudTrail"
+      State: "ENABLED"
+      Targets:
+        - Arn: !Ref EventBusArn
+          Id: "TargetEventBus"
 Outputs:
   FugueRoleArn:
     Description: IAM Role for Fugue
     Value: !GetAtt FugueRole.Arn
     Export:
-      Name: !Join [ ":", [ !Ref "AWS::StackName", FugueRoleArn ] ]
+      Name: !Join [":", [!Ref "AWS::StackName", FugueRoleArn]]

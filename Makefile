@@ -9,6 +9,7 @@ TRUSTED_PRINCIPAL ?= role/generate-credentials # Fugue's Role
 STACKSET_NAME ?= Fugue
 ROLE_NAME ?= $(shell cat role_name)
 OU ?= "*"
+EVENT_BUS_ARN ?= arn:aws:events:us-east-1:$(TRUSTED_ACCOUNT_ID):event-bus/fugue-events
 
 # Create the Fugue stackset which provisions secured roles in each AWS account
 .PHONY: stackset
@@ -25,7 +26,8 @@ endif
 			RoleName=$(ROLE_NAME) \
 			TrustedPrincipal=$(TRUSTED_PRINCIPAL) \
 			TrustedAccountID=$(TRUSTED_ACCOUNT_ID) \
-			ExternalID=$(EXTERNAL_ID)
+			ExternalID=$(EXTERNAL_ID) \
+			EventBusArn=$(EVENT_BUS_ARN)
 	@echo "The stackset is being created. This may take approximately 15 minutes."
 	@echo "Please monitor the process in the AWS console."
 
